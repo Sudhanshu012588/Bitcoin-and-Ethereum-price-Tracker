@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 
 interface BitcoinPriceResponse {
   price: string;
@@ -31,7 +31,7 @@ export default function ResultRow() {
         setBTCsymbol(data.symbol)
         
       } catch (error) {
-        setError((error as Error).message);
+        
       }
     };
 
@@ -94,7 +94,7 @@ export default function ResultRow() {
       : ""
   }`}
 >
-  {ethPrice ? `$${ethPrice}` : "N/A"}
+  {ethPrice  ? `$${ethPrice}` : "N/A"}
 </span>
             <span className="text-xl text-purple-300/50">ETH</span>
           </div>
@@ -103,6 +103,11 @@ export default function ResultRow() {
 
       {loading && (
         <div className="bg-gradient-to-r from-transparent via-blue-800/50 to-transparent skeleton-animation rounded-lg inset-0 absolute" />
+      )}
+      {error && (
+        <div className="text-red-500 mt-2">
+          Error: {error}
+        </div>
       )}
 
       

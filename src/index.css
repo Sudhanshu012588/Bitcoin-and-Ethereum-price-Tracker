@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: #113;
+  color: #fff;
+  background-image: radial-gradient(circle at center, #226 20%, transparent 80%);
+  height: 100vh;
+  margin: 0;
+}
+
+@keyframes from-left-to-right {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.skeleton-animation {
+  animation: from-left-to-right 20s linear infinite;
+}

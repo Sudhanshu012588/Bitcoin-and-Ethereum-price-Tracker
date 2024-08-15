@@ -1,4 +1,4 @@
-import  { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 interface BitcoinPriceResponse {
   price: string;
@@ -9,15 +9,19 @@ interface ETHcoinPriceResponse {
   ethereum: {
     usd: number;
   };
-  symbol:string;
+  symbol: string;
 }
 
 export default function ResultRow() {
   const [btcPrice, setBtcPrice] = useState<number | null>(null);
   const [ethPrice, setEthPrice] = useState<number | null>(null);
-  const loading: boolean = true;
+  const loading = true;
   const [error, setError] = useState<string | null>(null);
-  const [BTCsymbol, setBTCsymbol] = useState("");
+  const [BTCsymbol, setBTCsymbol] = useState<string>("");
+
+  // Use refs to keep track of old prices
+  const prevBtcPrice = useRef<number | null>(null);
+  const prevEthPrice = useRef<number | null>(null);
 
   useEffect(() => {
     const fetchBitcoinPrice = async () => {
@@ -28,10 +32,9 @@ export default function ResultRow() {
         }
         const data: BitcoinPriceResponse = await response.json();
         setBtcPrice(parseFloat(data.price));
-        setBTCsymbol(data.symbol)
-        
+        setBTCsymbol(data.symbol);
       } catch (error) {
-        
+        setError((error as Error).message);
       }
     };
 
@@ -43,7 +46,6 @@ export default function ResultRow() {
         }
         const data: ETHcoinPriceResponse = await response.json();
         setEthPrice(data.ethereum.usd);
-        
       } catch (error) {
         setError((error as Error).message);
       }
@@ -59,43 +61,48 @@ export default function ResultRow() {
 
     return () => clearInterval(intervalId);
   }, []);
-  let oldBTCprice:number|null = btcPrice;
-  let oldETHprice:number|null = ethPrice;
+
+  // Update refs with the latest prices
+  useEffect(() => {
+    prevBtcPrice.current = btcPrice;
+    prevEthPrice.current = ethPrice;
+  }, [btcPrice, ethPrice]);
+
   return (
     <div className="relative border min-h-12 border-white/10 rounded-lg bg-gradient-to-r from-purple-500/10 to-blue-500/10 p-4 my-4 overflow-hidden h-80">
       <div className="flex flex-col gap-4">
         <div className="flex gap-4">
-          <div className="grow">{`${BTCsymbol}`}</div>
+          <div className="grow">{BTCsymbol || "BTC"}</div>
           <div className="flex gap-2">
-          <span
-  className={`text-xl ${
-    oldBTCprice !== null && btcPrice !== null
-      ? btcPrice > oldBTCprice
-        ? "text-green-200/95"
-        : "text-red-200/95"
-      : ""
-  }`}
->
-  {btcPrice ? `$${btcPrice}` : "N/A"}
-</span>
+            <span
+              className={`text-xl ${
+                prevBtcPrice.current !== null && btcPrice !== null
+                  ? btcPrice > prevBtcPrice.current
+                    ? "text-green-200/95"
+                    : "text-red-200/95"
+                  : ""
+              }`}
+            >
+              {btcPrice !== null ? `$${btcPrice}` : "N/A"}
+            </span>
             <span className="text-xl text-purple-300/50">BTC</span>
           </div>
         </div>
 
-        <div className="flex gap-4 py-40">
-          <div className="grow">ETHUSDT</div>
+        <div className="flex gap-4">
+          <div className="grow">ETH</div>
           <div className="flex gap-2">
-          <span
-  className={`text-xl ${
-    oldETHprice !== null && btcPrice !== null
-      ? btcPrice > oldETHprice
-        ? "text-green-200/95"
-        : "text-red-200/95"
-      : ""
-  }`}
->
-  {ethPrice  ? `$${ethPrice}` : "N/A"}
-</span>
+            <span
+              className={`text-xl ${
+                prevEthPrice.current !== null && ethPrice !== null
+                  ? ethPrice > prevEthPrice.current
+                    ? "text-green-200/95"
+                    : "text-red-200/95"
+                  : ""
+              }`}
+            >
+              {ethPrice !== null ? `$${ethPrice}` : "N/A"}
+            </span>
             <span className="text-xl text-purple-300/50">ETH</span>
           </div>
         </div>
@@ -109,8 +116,6 @@ export default function ResultRow() {
           Error: {error}
         </div>
       )}
-
-      
     </div>
   );
 }
